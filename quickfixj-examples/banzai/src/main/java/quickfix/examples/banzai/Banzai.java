@@ -42,6 +42,8 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.SocketInitiator;
 import quickfix.examples.banzai.ui.BanzaiFrame;
+import quickfix.ConfigError;
+import quickfix.RuntimeError;
 
 /**
  * Entry point for the Banzai application.
@@ -68,9 +70,7 @@ public class Banzai {
         }
         SessionSettings settings = new SessionSettings(inputStream);
         inputStream.close();
-
         boolean logHeartbeats = Boolean.valueOf(System.getProperty("logHeartbeats", "true"));
-
         OrderTableModel orderTableModel = orderTableModel();
         ExecutionTableModel executionTableModel = executionTableModel();
         BanzaiApplication application = application(orderTableModel, executionTableModel);
@@ -105,8 +105,10 @@ public class Banzai {
             try {
                 initiator.start();
                 initiatorStarted = true;
-            } catch (Exception e) {
-                log.error("Logon failed", e);
+            } catch (ConfigError e) {
+                System.out.println("ConfigError" + e);
+            } catch (RuntimeError e) {
+                System.out.println("RuntimeError" + e);
             }
         } else {
             for (SessionID sessionId : initiator.getSessions()) {
