@@ -385,17 +385,8 @@ public class BanzaiApplication implements Application {
 
         if (type == OrderType.LIMIT)
             newOrderSingle.setField(new Price(order.getLimit()));
-        else if (type == OrderType.STOP) {
-            newOrderSingle.setField(new StopPx(order.getStop()));
-        } else if (type == OrderType.STOP_LIMIT) {
-            newOrderSingle.setField(new Price(order.getLimit()));
-            newOrderSingle.setField(new StopPx(order.getStop()));
-        }
-
-        if (order.getSide() == OrderSide.SHORT_SELL
-                || order.getSide() == OrderSide.SHORT_SELL_EXEMPT) {
-            newOrderSingle.setField(new LocateReqd(false));
-        }
+        else if (type == OrderType.RFQ)
+            System.out.println("RFQ are not yet supported");
 
         newOrderSingle.setField(tifToFIXTif(order.getTIF()));
         return newOrderSingle;
@@ -573,10 +564,7 @@ public class BanzaiApplication implements Application {
         sideMap.put(OrderSide.CROSS, new Side(Side.CROSS));
         sideMap.put(OrderSide.CROSS_SHORT, new Side(Side.CROSS_SHORT));
 
-        typeMap.put(OrderType.MARKET, new OrdType(OrdType.MARKET));
         typeMap.put(OrderType.LIMIT, new OrdType(OrdType.LIMIT));
-        typeMap.put(OrderType.STOP, new OrdType(OrdType.STOP));
-        typeMap.put(OrderType.STOP_LIMIT, new OrdType(OrdType.STOP_LIMIT));
 
         tifMap.put(OrderTIF.DAY, new TimeInForce(TimeInForce.DAY));
         tifMap.put(OrderTIF.IOC, new TimeInForce(TimeInForce.IMMEDIATE_OR_CANCEL));
