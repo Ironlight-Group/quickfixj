@@ -70,6 +70,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Observable;
 import java.util.Observer;
+import java.io.File;
 
 public class BanzaiApplication implements Application {
     private final DefaultMessageFactory messageFactory = new DefaultMessageFactory();
@@ -100,6 +101,16 @@ public class BanzaiApplication implements Application {
 
     public void onLogout(SessionID sessionID) {
         observableLogon.logoff(sessionID);
+        //delete all session data after each close to prevent e.g. sequence num errors
+        String path = "target/data/banzai/FIX.4.4-CLIENT-IRON";
+        File[] sessionData = {new File(path+".body"),new File(path+".header"),new File(path+".senderseqnums"),new File(path+".session"),new File(path+".targetseqnums")}; 
+        for (File file : sessionData){
+            if (file.delete()) { 
+                  System.out.println("Deleted the file: " + file.getName());
+                } else {
+                  System.out.println("Failed to delete some session data. Could it be missing?");
+                } 
+        }
     }
 
     public void toAdmin(quickfix.Message message, SessionID sessionID) {
