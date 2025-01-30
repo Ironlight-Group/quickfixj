@@ -70,12 +70,11 @@ public class Banzai {
         }
         SessionSettings settings = new SessionSettings(inputStream);
         inputStream.close();
-        boolean logHeartbeats = Boolean.valueOf(System.getProperty("logHeartbeats", "true"));
         OrderTableModel orderTableModel = orderTableModel();
         ExecutionTableModel executionTableModel = executionTableModel();
         BanzaiApplication application = application(orderTableModel, executionTableModel);
         MessageStoreFactory messageStoreFactory = new FileStoreFactory(settings);
-        LogFactory logFactory = new ScreenLogFactory(true, true, true, logHeartbeats);
+        LogFactory logFactory = new ScreenLogFactory(true, true, true, true);
         MessageFactory messageFactory = new DefaultMessageFactory();
 
         initiator = new SocketInitiator(application, messageStoreFactory, settings, logFactory,
