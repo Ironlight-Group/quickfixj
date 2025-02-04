@@ -179,6 +179,8 @@ public class OrderEntryPanel extends JPanel implements Observer {
 
         if (type == OrderType.LIMIT)
             submitButton.setEnabled(activate && limitEntered);
+        if (type == OrderType.RFQ)
+            submitButton.setEnabled(activate);
     }
 
     private class PriceListener implements ItemListener {
