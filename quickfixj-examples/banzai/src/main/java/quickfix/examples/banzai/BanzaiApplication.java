@@ -156,6 +156,10 @@ public class BanzaiApplication implements Application {
                         executionReport(message, sessionID);
                     } else if (message.getHeader().getField(msgType).valueEquals("9")) {
                         cancelReject(message, sessionID);
+                    } else if (message.getHeader().getField(msgType).valueEquals("AI")) {
+                        System.out.println("Got quote status report");
+                    } else if (message.getHeader().getField(msgType).valueEquals("AG")) {
+                        System.out.println("Got quote reject");
                     } else {
                         sendBusinessReject(message, BusinessRejectReason.UNSUPPORTED_MESSAGE_TYPE,
                                 "Unsupported Message Type");
