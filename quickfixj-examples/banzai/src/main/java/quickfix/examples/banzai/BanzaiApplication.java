@@ -58,7 +58,6 @@ import quickfix.field.RefSeqNum;
 import quickfix.field.SenderCompID;
 import quickfix.field.SessionRejectReason;
 import quickfix.field.Side;
-import quickfix.field.StopPx;
 import quickfix.field.Symbol;
 import quickfix.field.TargetCompID;
 import quickfix.field.Text;

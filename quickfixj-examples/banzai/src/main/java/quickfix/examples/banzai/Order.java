@@ -31,7 +31,6 @@ public class Order implements Cloneable {
     private OrderType type = OrderType.LIMIT;
     private OrderTIF tif = OrderTIF.DAY;
     private Double limit = null;
-    private Double stop = null;
     private double avgPx = 0.0;
     private boolean rejected = false;
     private boolean canceled = false;
@@ -138,22 +137,6 @@ public class Order implements Cloneable {
             this.limit = null;
         } else {
             this.limit = Double.parseDouble(limit);
-        }
-    }
-
-    public Double getStop() {
-        return stop;
-    }
-
-    public void setStop(Double stop) {
-        this.stop = stop;
-    }
-
-    public void setStop(String stop) {
-        if (stop == null || stop.equals("")) {
-            this.stop = null;
-        } else {
-            this.stop = Double.parseDouble(stop);
         }
     }
 

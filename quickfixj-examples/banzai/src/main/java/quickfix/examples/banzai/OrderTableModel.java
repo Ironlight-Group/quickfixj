@@ -48,7 +48,7 @@ public class OrderTableModel extends AbstractTableModel {
 
         headers = new String[]
                   {"Symbol", "Quantity", "Open", "Executed",
-                   "Side", "Type", "Limit", "Stop", "AvgPx",
+                   "Side", "Type", "Limit", "AvgPx",
                    "Target"};
     }
 
@@ -141,8 +141,6 @@ public class OrderTableModel extends AbstractTableModel {
             return order.getType();
         case LIMITPRICE:
             return order.getLimit();
-        case STOPPRICE:
-            return order.getStop();
         case AVGPX:
             return order.getAvgPx();
         case TARGET:

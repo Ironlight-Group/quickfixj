@@ -57,7 +57,6 @@ public class OrderEntryPanel extends JPanel implements Observer {
     private boolean symbolEntered = false;
     private boolean quantityEntered = false;
     private boolean limitEntered = false;
-    private boolean stopEntered = false;
     private boolean sessionEntered = false;
 
     private final JTextField symbolTextField = new JTextField();
