@@ -375,28 +375,30 @@ public class BanzaiApplication implements Application {
         send(populateOrder(order, newOrderSingle), order.getSessionID());
     }
 
-    // public void send44(Order order) {
-    //     quickfix.fix44.NewOrderSingle newOrderSingle = new quickfix.fix44.NewOrderSingle(
-    //             new ClOrdID(order.getID()), sideToFIXSide(order.getSide()),
-    //             new TransactTime(), typeToFIXType(order.getType()));
-    //     newOrderSingle.set(new OrderQty(order.getQuantity()));
-    //     newOrderSingle.set(new Symbol(order.getSymbol()));
-    //     newOrderSingle.set(new HandlInst('1'));
-    //     send(populateOrder(order, newOrderSingle), order.getSessionID());
-    // }
-
     public void send44(Order order) {
-        System.out.println(order.getID());
-        quickfix.fix44.QuoteRequest quoteRequest = new quickfix.fix44.QuoteRequest(new QuoteReqID(order.getID()));
+        if (order.getType() == OrderType.RFQ) {
+            quickfix.fix44.QuoteRequest quoteRequest = new quickfix.fix44.QuoteRequest(new QuoteReqID(order.getID()));
+            quickfix.fix44.QuoteRequest.NoRelatedSym noRelatedSym = new quickfix.fix44.QuoteRequest.NoRelatedSym();
+            quickfix.fix44.component.OrderQtyData orderQtyData = new quickfix.fix44.component.OrderQtyData();
 
-        quickfix.fix44.QuoteRequest.NoRelatedSym noRelatedSym = new quickfix.fix44.QuoteRequest.NoRelatedSym();
-        quickfix.fix44.component.OrderQtyData orderQtyData = new quickfix.fix44.component.OrderQtyData();
+            noRelatedSym.set(new Symbol(order.getSymbol()));
+            noRelatedSym.set(new OrderQty(order.getQuantity()));
+            quoteRequest.addGroup(noRelatedSym);
 
-        noRelatedSym.set(new Symbol(order.getSymbol()));
-        noRelatedSym.set(new OrderQty(order.getQuantity()));
-        quoteRequest.addGroup(noRelatedSym);
+            send(populateOrder(order, quoteRequest), order.getSessionID());
+        } else if (order.getType() == OrderType.LIMIT) {
+            quickfix.fix44.NewOrderSingle newOrderSingle = new quickfix.fix44.NewOrderSingle(
+                new ClOrdID(order.getID()), sideToFIXSide(order.getSide()),
+                new TransactTime(), typeToFIXType(order.getType()));
 
-        send(populateOrder(order, quoteRequest), order.getSessionID());
+            newOrderSingle.set(new OrderQty(order.getQuantity()));
+            newOrderSingle.set(new Symbol(order.getSymbol()));
+            newOrderSingle.set(new HandlInst('1'));
+
+            send(populateOrder(order, newOrderSingle), order.getSessionID());
+        } else {
+           System.out.println("Something went wrong."); 
+        }
     }
 
     public void send50(Order order) {
@@ -409,19 +411,12 @@ public class BanzaiApplication implements Application {
         send(populateOrder(order, newOrderSingle), order.getSessionID());
     }
 
-    // public quickfix.Message populateOrder(Order order, quickfix.Message newOrderSingle) {
-
-    //     OrderType type = order.getType();
-
-    //     if (type == OrderType.LIMIT)
-    //         newOrderSingle.setField(new Price(order.getLimit()));
-
-    //     newOrderSingle.setField(tifToFIXTif(order.getTIF()));
-    //     return newOrderSingle;
-    // }
-
-    public quickfix.Message populateOrder(Order order, quickfix.Message quoteRequest) {
-        return quoteRequest;
+    public quickfix.Message populateOrder(Order order, quickfix.Message message) {
+        if (order.getType() == OrderType.LIMIT) {
+            message.setField(new Price(order.getLimit()));
+            message.setField(tifToFIXTif(order.getTIF()));
+        }
+        return message;
     }
 
     public void cancel(Order order) {
