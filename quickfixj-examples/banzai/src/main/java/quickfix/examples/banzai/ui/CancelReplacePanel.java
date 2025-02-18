@@ -32,6 +32,8 @@ public class CancelReplacePanel extends JPanel {
     private final DoubleNumberTextField limitPriceTextField = new DoubleNumberTextField();
     private final JButton cancelButton = new JButton("Cancel");
     private final JButton replaceButton = new JButton("Replace");
+    private final JButton hitButton = new JButton("Hit");
+    private final JButton liftButton = new JButton("Lift");
     private Order order = null;
 
     private final GridBagConstraints constraints = new GridBagConstraints();
@@ -70,6 +72,8 @@ public class CancelReplacePanel extends JPanel {
         add(limitPriceLabel, ++x, y);
         constraints.weightx = 5;
         add(limitPriceTextField, ++x, y);
+        add(hitButton, ++x, y);
+        add(liftButton, ++x, y);
     }
 
     public void setEnabled(boolean enabled) {
@@ -77,6 +81,8 @@ public class CancelReplacePanel extends JPanel {
         replaceButton.setEnabled(enabled);
         quantityTextField.setEnabled(enabled);
         limitPriceTextField.setEnabled(enabled);
+        hitButton.setEnabled(enabled);
+        liftButton.setEnabled(enabled);
 
         Color labelColor = enabled ? Color.black : Color.gray;
         Color bgColor = enabled ? Color.white : Color.gray;

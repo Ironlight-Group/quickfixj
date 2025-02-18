@@ -378,7 +378,6 @@ public class BanzaiApplication implements Application {
         if (order.getType() == OrderType.RFQ) {
             quickfix.fix44.QuoteRequest quoteRequest = new quickfix.fix44.QuoteRequest(new QuoteReqID(order.getID()));
             quickfix.fix44.QuoteRequest.NoRelatedSym noRelatedSym = new quickfix.fix44.QuoteRequest.NoRelatedSym();
-            quickfix.fix44.component.OrderQtyData orderQtyData = new quickfix.fix44.component.OrderQtyData();
 
             noRelatedSym.set(new Symbol(order.getSymbol()));
             noRelatedSym.set(new OrderQty(order.getQuantity()));
