@@ -44,6 +44,8 @@ public class CancelReplacePanel extends JPanel {
         this.application = application;
         cancelButton.addActionListener(new CancelListener());
         replaceButton.addActionListener(new ReplaceListener());
+        hitButton.addActionListener(new HitListener());
+        liftButton.addActionListener(new LiftListener());
 
         setLayout(new GridBagLayout());
         createComponents();
@@ -52,6 +54,8 @@ public class CancelReplacePanel extends JPanel {
     public void addActionListener(ActionListener listener) {
         cancelButton.addActionListener(listener);
         replaceButton.addActionListener(listener);
+        hitButton.addActionListener(listener);
+        liftButton.addActionListener(listener);
     }
 
     private void createComponents() {
@@ -134,6 +138,18 @@ public class CancelReplacePanel extends JPanel {
             newOrder.setExecuted(0);
 
             application.replace(order, newOrder);
+        }
+    }
+
+    private class HitListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("Hit.");
+        }
+    }
+
+    private class LiftListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("Lifted.");
         }
     }
 }
