@@ -72,7 +72,7 @@ public class Banzai {
         inputStream.close();
         OrderTableModel orderTableModel = orderTableModel();
         ExecutionTableModel executionTableModel = executionTableModel();
-        BanzaiApplication application = application(orderTableModel, executionTableModel);
+        BanzaiApplication application = application(orderTableModel, executionTableModel, settings);
         MessageStoreFactory messageStoreFactory = new FileStoreFactory(settings);
         LogFactory logFactory = new ScreenLogFactory(true, true, true, true);
         MessageFactory messageFactory = new DefaultMessageFactory();
@@ -95,8 +95,8 @@ public class Banzai {
         return new ExecutionTableModel();
     }
     
-    protected BanzaiApplication application(OrderTableModel orderTableModel, ExecutionTableModel executionTableModel) {
-        return new BanzaiApplication(orderTableModel, executionTableModel);
+    protected BanzaiApplication application(OrderTableModel orderTableModel, ExecutionTableModel executionTableModel, SessionSettings settings) {
+        return new BanzaiApplication(orderTableModel, executionTableModel, settings);
     }
     
     public synchronized void logon() {

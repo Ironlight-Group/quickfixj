@@ -31,7 +31,9 @@ import quickfix.RejectLogon;
 import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionNotFound;
+import quickfix.SessionSettings;
 import quickfix.UnsupportedMessageType;
+import quickfix.ConfigError;
 import quickfix.field.AvgPx;
 import quickfix.field.BeginString;
 import quickfix.field.BusinessRejectReason;
@@ -71,11 +73,14 @@ import java.util.HashSet;
 import java.util.Observable;
 import java.util.Observer;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 
 public class BanzaiApplication implements Application {
     private final DefaultMessageFactory messageFactory = new DefaultMessageFactory();
     private OrderTableModel orderTableModel = null;
     private ExecutionTableModel executionTableModel = null;
+    private SessionSettings settings = null;
     private final ObservableOrder observableOrder = new ObservableOrder();
     private final ObservableLogon observableLogon = new ObservableLogon();
     private boolean isAvailable = true;
@@ -87,12 +92,30 @@ public class BanzaiApplication implements Application {
     static private final HashMap<SessionID, HashSet<ExecID>> execIDs = new HashMap<>();
 
     public BanzaiApplication(OrderTableModel orderTableModel,
-            ExecutionTableModel executionTableModel) {
+            ExecutionTableModel executionTableModel,
+            SessionSettings settings) {
         this.orderTableModel = orderTableModel;
         this.executionTableModel = executionTableModel;
+        this.settings = settings;
     }
 
     public void onCreate(SessionID sessionID) {
+        try {
+            //delete all previous session data before connecting to prevent e.g. sequence num errors
+            String senderCompId = null;
+            senderCompId = settings.getString(SessionSettings.SENDERCOMPID);
+            String path = "target/data/banzai/FIX.4.4-" + senderCompId + "-IRON";
+            File[] sessionData = {new File(path+".body"),new File(path+".header"),new File(path+".senderseqnums"),new File(path+".session"),new File(path+".targetseqnums")}; 
+            for (File file : sessionData){
+                if (file.delete()) { 
+                      System.out.println("Deleted the file: " + file.getName());
+                    } else {
+                      System.out.println("Failed to delete some session data. Could it be missing?");
+                    } 
+            }
+        } catch (ConfigError e) {
+            System.out.println("ConfigError ocurred: " + e);
+        }
     }
 
     public void onLogon(SessionID sessionID) {
@@ -101,16 +124,6 @@ public class BanzaiApplication implements Application {
 
     public void onLogout(SessionID sessionID) {
         observableLogon.logoff(sessionID);
-        //delete all session data after each close to prevent e.g. sequence num errors
-        String path = "target/data/banzai/FIX.4.4-CLIENT-IRON";
-        File[] sessionData = {new File(path+".body"),new File(path+".header"),new File(path+".senderseqnums"),new File(path+".session"),new File(path+".targetseqnums")}; 
-        for (File file : sessionData){
-            if (file.delete()) { 
-                  System.out.println("Deleted the file: " + file.getName());
-                } else {
-                  System.out.println("Failed to delete some session data. Could it be missing?");
-                } 
-        }
     }
 
     public void toAdmin(quickfix.Message message, SessionID sessionID) {
