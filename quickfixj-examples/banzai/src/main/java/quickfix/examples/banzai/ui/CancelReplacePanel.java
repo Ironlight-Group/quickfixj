@@ -28,10 +28,13 @@ import quickfix.examples.banzai.*;
 public class CancelReplacePanel extends JPanel {
     private final JLabel quantityLabel = new JLabel("Quantity");
     private final JLabel limitPriceLabel = new JLabel("Limit");
+    private final JLabel quotePriceLabel = new JLabel("Price");
     private final IntegerNumberTextField quantityTextField = new IntegerNumberTextField();
     private final DoubleNumberTextField limitPriceTextField = new DoubleNumberTextField();
+    private final DoubleNumberTextField quotePriceTextField = new DoubleNumberTextField();
     private final JButton cancelButton = new JButton("Cancel");
     private final JButton replaceButton = new JButton("Replace");
+    private final JButton quoteButton = new JButton("Quote");
     private final JButton hitButton = new JButton("Hit");
     private final JButton liftButton = new JButton("Lift");
     private Order order = null;
@@ -44,6 +47,7 @@ public class CancelReplacePanel extends JPanel {
         this.application = application;
         cancelButton.addActionListener(new CancelListener());
         replaceButton.addActionListener(new ReplaceListener());
+        quoteButton.addActionListener(new QuoteListener());
         hitButton.addActionListener(new HitListener());
         liftButton.addActionListener(new LiftListener());
 
@@ -54,6 +58,7 @@ public class CancelReplacePanel extends JPanel {
     public void addActionListener(ActionListener listener) {
         cancelButton.addActionListener(listener);
         replaceButton.addActionListener(listener);
+        quoteButton.addActionListener(listener);
         hitButton.addActionListener(listener);
         liftButton.addActionListener(listener);
     }
@@ -76,6 +81,13 @@ public class CancelReplacePanel extends JPanel {
         add(limitPriceLabel, ++x, y);
         constraints.weightx = 5;
         add(limitPriceTextField, ++x, y);
+        constraints.weightx = 1;
+        add(quoteButton, ++x, y);
+        constraints.weightx = 0;
+        add(quotePriceLabel, ++x, y);
+        constraints.weightx = 5;
+        add(quotePriceTextField, ++x, y);
+        constraints.weightx = 1;
         add(hitButton, ++x, y);
         add(liftButton, ++x, y);
     }
@@ -85,15 +97,19 @@ public class CancelReplacePanel extends JPanel {
         replaceButton.setEnabled(enabled);
         quantityTextField.setEnabled(enabled);
         limitPriceTextField.setEnabled(enabled);
+        quotePriceTextField.setEnabled(enabled);
         hitButton.setEnabled(enabled);
         liftButton.setEnabled(enabled);
+        quoteButton.setEnabled(enabled);
 
         Color labelColor = enabled ? Color.black : Color.gray;
         Color bgColor = enabled ? Color.white : Color.gray;
         quantityTextField.setBackground(bgColor);
         limitPriceTextField.setBackground(bgColor);
+        quotePriceTextField.setBackground(bgColor);
         quantityLabel.setForeground(labelColor);
         limitPriceLabel.setForeground(labelColor);
+        quotePriceLabel.setForeground(labelColor);
     }
 
     public void update() {
@@ -138,6 +154,12 @@ public class CancelReplacePanel extends JPanel {
             newOrder.setExecuted(0);
 
             application.replace(order, newOrder);
+        }
+    }
+
+    private class QuoteListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("Quoted.");
         }
     }
 

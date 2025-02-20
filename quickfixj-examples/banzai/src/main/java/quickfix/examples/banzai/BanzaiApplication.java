@@ -172,6 +172,8 @@ public class BanzaiApplication implements Application {
                         System.out.println("Got quote status report");
                     } else if (message.getHeader().getField(msgType).valueEquals("AG")) {
                         System.out.println("Got quote reject");
+                    } else if (message.getHeader().getField(msgType).valueEquals("R")) {
+                        System.out.println("Got quote Request");
                     } else {
                         sendBusinessReject(message, BusinessRejectReason.UNSUPPORTED_MESSAGE_TYPE,
                                 "Unsupported Message Type");
