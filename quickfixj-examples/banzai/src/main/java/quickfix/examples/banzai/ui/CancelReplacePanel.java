@@ -160,18 +160,21 @@ public class CancelReplacePanel extends JPanel {
     private class QuoteListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             System.out.println("Quoted.");
+            System.out.println(order.getType());
         }
     }
 
     private class HitListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             System.out.println("Hit.");
+            System.out.println(order.getType());
         }
     }
 
     private class LiftListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             System.out.println("Lifted.");
+            System.out.println(order.getType());
         }
     }
 }

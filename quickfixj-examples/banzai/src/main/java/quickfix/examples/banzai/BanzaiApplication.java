@@ -34,7 +34,10 @@ import quickfix.SessionNotFound;
 import quickfix.SessionSettings;
 import quickfix.UnsupportedMessageType;
 import quickfix.ConfigError;
+import quickfix.Group;
 import quickfix.field.AvgPx;
+import quickfix.field.BidPx;
+import quickfix.field.OfferPx;
 import quickfix.field.BeginString;
 import quickfix.field.BusinessRejectReason;
 import quickfix.field.ClOrdID;
@@ -54,6 +57,8 @@ import quickfix.field.OrdType;
 import quickfix.field.OrderQty;
 import quickfix.field.OrigClOrdID;
 import quickfix.field.QuoteReqID;
+import quickfix.field.QuoteID;
+import quickfix.field.QuoteType;
 import quickfix.field.Price;
 import quickfix.field.RefMsgType;
 import quickfix.field.RefSeqNum;
@@ -65,6 +70,8 @@ import quickfix.field.TargetCompID;
 import quickfix.field.Text;
 import quickfix.field.TimeInForce;
 import quickfix.field.TransactTime;
+import quickfix.field.BidSize;
+import quickfix.field.OfferSize;
 
 import javax.swing.*;
 import java.math.BigDecimal;
@@ -174,6 +181,18 @@ public class BanzaiApplication implements Application {
                         System.out.println("Got quote reject");
                     } else if (message.getHeader().getField(msgType).valueEquals("R")) {
                         System.out.println("Got quote Request");
+                        System.out.println(message.toString());
+                        Order quoteRequest = new Order();
+                        Group noRelatedSymGroup = new quickfix.fix44.QuoteRequest.NoRelatedSym();
+                        Group group = message.getGroup(1, noRelatedSymGroup);
+                        quoteRequest.setSymbol(group.getString(Symbol.FIELD));
+                        quoteRequest.setQuoteReqID(message.getString(QuoteReqID.FIELD));
+                        quoteRequest.setQuantity(group.getInt(OrderQty.FIELD));
+                        quoteRequest.setType(OrderType.RFQ);
+                        orderTableModel.addOrder(quoteRequest);
+                    } else if (message.getHeader().getField(msgType).valueEquals("S")) {
+                        System.out.println("Got quote");
+                        System.out.println(message.toString());
                     } else {
                         sendBusinessReject(message, BusinessRejectReason.UNSUPPORTED_MESSAGE_TYPE,
                                 "Unsupported Message Type");
@@ -404,11 +423,27 @@ public class BanzaiApplication implements Application {
                 new ClOrdID(order.getID()), sideToFIXSide(order.getSide()),
                 new TransactTime(), typeToFIXType(order.getType()));
 
-            newOrderSingle.set(new OrderQty(order.getQuantity()));
             newOrderSingle.set(new Symbol(order.getSymbol()));
+            newOrderSingle.set(new OrderQty(order.getQuantity()));
             newOrderSingle.set(new HandlInst('1'));
 
             send(populateOrder(order, newOrderSingle), order.getSessionID());
+        } else if (order.getType() == OrderType.QUOTE) {
+            quickfix.fix44.Quote quote = new quickfix.fix44.Quote(new QuoteID(order.getID()));
+            quote.set(new QuoteType(1));
+            quote.set(new Symbol(order.getSymbol()));
+
+            if (order.getSide() == OrderSide.BUY) {
+                quote.set(new BidPx(order.getLimit()));
+                quote.set(new BidSize(order.getQuantity()));  
+            } else if (order.getSide() == OrderSide.SELL) {
+                quote.set(new OfferPx(order.getLimit()));
+                quote.set(new OfferSize(order.getQuantity()));  
+            }
+
+            quote.set(new QuoteReqID(order.getQuoteReqID()));
+
+            send(populateOrder(order, quote), order.getSessionID());
         } else {
            System.out.println("Something went wrong."); 
         }

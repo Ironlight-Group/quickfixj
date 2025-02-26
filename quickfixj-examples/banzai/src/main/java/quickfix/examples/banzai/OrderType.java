@@ -26,9 +26,10 @@ public class OrderType {
     static private final Map<String, OrderType> known = new HashMap<>();
     static public final OrderType RFQ = new OrderType("Request For Quote");
     static public final OrderType LIMIT = new OrderType("Limit");
+    static public final OrderType QUOTE = new OrderType("Quote");
     private final String name;
 
-    static private final OrderType[] array = {LIMIT, RFQ};
+    static private final OrderType[] array = {LIMIT, RFQ, QUOTE};
 
     private OrderType(String name) {
         this.name = name;

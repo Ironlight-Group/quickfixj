@@ -67,6 +67,7 @@ public class OrderTable extends JTable implements MouseListener {
             return;
         int row = rowAtPoint(e.getPoint());
         Order order = ((OrderTableModel) dataModel).getOrder(row);
+        System.out.println(order.getType());
         application.cancel(order);
     }
 

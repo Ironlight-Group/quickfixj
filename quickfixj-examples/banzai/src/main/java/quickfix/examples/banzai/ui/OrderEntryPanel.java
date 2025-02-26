@@ -80,6 +80,8 @@ public class OrderEntryPanel extends JPanel implements Observer {
 
     private final GridBagConstraints constraints = new GridBagConstraints();
 
+    private Order selectedOrder = null;
+
     public OrderEntryPanel(final OrderTableModel orderTableModel,
                 final BanzaiApplication application) {
         setName("OrderEntryPanel");
@@ -176,7 +178,7 @@ public class OrderEntryPanel extends JPanel implements Observer {
         OrderType type = (OrderType) typeComboBox.getSelectedItem();
         boolean activate = symbolEntered && quantityEntered && sessionEntered;
 
-        if (type == OrderType.LIMIT)
+        if (type == OrderType.LIMIT || type == OrderType.QUOTE)
             submitButton.setEnabled(activate && limitEntered);
         if (type == OrderType.RFQ)
             submitButton.setEnabled(activate);
@@ -185,7 +187,7 @@ public class OrderEntryPanel extends JPanel implements Observer {
     private class PriceListener implements ItemListener {
         public void itemStateChanged(ItemEvent e) {
             OrderType item = (OrderType) typeComboBox.getSelectedItem();
-            if (item == OrderType.LIMIT) {
+            if (item == OrderType.LIMIT || item == OrderType.QUOTE) {
                 enableLimitPrice(true);
             } else {
                 enableLimitPrice(false);
@@ -210,6 +212,10 @@ public class OrderEntryPanel extends JPanel implements Observer {
             sessionComboBox.removeItem(logonEvent.getSessionID());
     }
 
+    public void setSelectedOrder(Order selectedOrder) {
+        this.selectedOrder = selectedOrder;
+    }
+
     private class SubmitListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             Order order = new Order();
@@ -222,8 +228,10 @@ public class OrderEntryPanel extends JPanel implements Observer {
             order.setOpen(order.getQuantity());
 
             OrderType type = order.getType();
-            if (type == OrderType.LIMIT)
+            if (type == OrderType.LIMIT || type == OrderType.QUOTE)
                 order.setLimit(limitPriceTextField.getText());
+            if (type == OrderType.QUOTE)
+                order.setQuoteReqID(selectedOrder.getQuoteReqID());
             order.setSessionID((SessionID) sessionComboBox.getSelectedItem());
 
             orderTableModel.addOrder(order);

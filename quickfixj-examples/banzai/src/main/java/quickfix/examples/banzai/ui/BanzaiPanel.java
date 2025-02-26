@@ -122,6 +122,7 @@ public class BanzaiPanel extends JPanel implements Observer, ActionListener {
                 Order order = orderTableModel.getOrder(selectedRow);
                 if (order != null) {
                     orderEntryPanel.setMessage(order.getMessage());
+                    orderEntryPanel.setSelectedOrder(order);
                     cancelReplacePanel.setOrder(order);
                 }
             }
