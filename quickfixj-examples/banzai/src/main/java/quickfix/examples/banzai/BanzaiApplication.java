@@ -193,6 +193,18 @@ public class BanzaiApplication implements Application {
                     } else if (message.getHeader().getField(msgType).valueEquals("S")) {
                         System.out.println("Got quote");
                         System.out.println(message.toString());
+                        Order quote = new Order();
+                        quote.setSymbol(message.getString(Symbol.FIELD));
+                        quote.setQuoteID(message.getString(QuoteID.FIELD));
+                        if (message.isSetField(BidPx.FIELD)) {
+                            quote.setQuantity(message.getInt(BidSize.FIELD));
+                            quote.setLimit(message.getDouble(BidPx.FIELD));
+                        } else {
+                            quote.setQuantity(message.getInt(OfferSize.FIELD));
+                            quote.setLimit(message.getDouble(OfferPx.FIELD));
+                        }
+                        quote.setType(OrderType.QUOTE);
+                        orderTableModel.addOrder(quote);
                     } else {
                         sendBusinessReject(message, BusinessRejectReason.UNSUPPORTED_MESSAGE_TYPE,
                                 "Unsupported Message Type");

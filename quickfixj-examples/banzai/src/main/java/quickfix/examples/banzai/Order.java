@@ -40,6 +40,7 @@ public class Order implements Cloneable {
     private String originalID = null;
     private static int nextID = 1;
     private String quoteReqID = null;
+    private String quoteID = null;
 
     public Order() {
         ID = generateID();
@@ -203,5 +204,13 @@ public class Order implements Cloneable {
 
     public String getQuoteReqID() {
         return quoteReqID;
+    }
+
+    public void setQuoteID(String quoteID) {
+        this.quoteID = quoteID;
+    }
+
+    public String getQuoteID() {
+        return quoteID;
     }
 }
