@@ -200,9 +200,11 @@ public class BanzaiApplication implements Application {
                         if (message.isSetField(BidPx.FIELD)) {
                             quote.setQuantity(message.getInt(BidSize.FIELD));
                             quote.setLimit(message.getDouble(BidPx.FIELD));
+                            quote.setSide(OrderSide.BUY);
                         } else {
                             quote.setQuantity(message.getInt(OfferSize.FIELD));
                             quote.setLimit(message.getDouble(OfferPx.FIELD));
+                            quote.setSide(OrderSide.SELL);
                         }
                         quote.setType(OrderType.QUOTE);
                         quote.setOpen(1);
