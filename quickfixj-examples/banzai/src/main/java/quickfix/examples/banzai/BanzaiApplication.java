@@ -202,6 +202,7 @@ public class BanzaiApplication implements Application {
                             quote.setLimit(message.getDouble(BidPx.FIELD));
                         } else {
                             quote.setQuantity(message.getInt(OfferSize.FIELD));
+                            quote.setLimit(message.getDouble(OfferPx.FIELD));
                         }
                         quote.setType(OrderType.QUOTE);
                         quote.setOpen(1);
