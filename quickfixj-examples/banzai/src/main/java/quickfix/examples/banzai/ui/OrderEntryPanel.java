@@ -174,25 +174,64 @@ public class OrderEntryPanel extends JPanel implements Observer {
         return component;
     }
 
+    //Determines whether orders are submittable based on entered information
     private void activateSubmit() {
         OrderType type = (OrderType) typeComboBox.getSelectedItem();
         boolean activate = symbolEntered && quantityEntered && sessionEntered;
 
-        if (type == OrderType.LIMIT || type == OrderType.QUOTE)
-            submitButton.setEnabled(activate && limitEntered);
-        if (type == OrderType.RFQ)
-            submitButton.setEnabled(activate);
+        if (type == OrderType.LIMIT) {
+            submitButton.setEnabled(sessionEntered && limitEntered && quantityEntered && symbolEntered);
+        }
+        else if (type == OrderType.RFQ) {
+            submitButton.setEnabled(sessionEntered && quantityEntered && symbolEntered);
+        }
+        else if (type == OrderType.QUOTE) {
+            submitButton.setEnabled(sessionEntered && limitEntered);
+        }
     }
 
+    //Enables and disables price, side, quantity depending on order type
     private class PriceListener implements ItemListener {
         public void itemStateChanged(ItemEvent e) {
             OrderType item = (OrderType) typeComboBox.getSelectedItem();
-            if (item == OrderType.LIMIT || item == OrderType.QUOTE) {
+            if (item == OrderType.LIMIT) {
                 enableLimitPrice(true);
-            } else {
+                enableQuantity(true);
+                enableOrderSide(true);
+                enableSymbol(true);
+            } else if (item == OrderType.RFQ) {
                 enableLimitPrice(false);
+                enableQuantity(true);
+                enableOrderSide(false);
+                enableSymbol(true);
+            } else if (item == OrderType.QUOTE) {
+                enableLimitPrice(true);
+                enableQuantity(false);
+                enableOrderSide(true);
+                enableSymbol(false);
             }
             activateSubmit();
+        }
+
+        private void enableSymbol(boolean enabled) {
+            Color labelColor = enabled ? Color.black : Color.gray;
+            Color bgColor = enabled ? Color.white : Color.gray;
+            symbolTextField.setEnabled(enabled);
+            symbolTextField.setBackground(bgColor);
+        }
+
+        private void enableQuantity(boolean enabled) {
+            Color labelColor = enabled ? Color.black : Color.gray;
+            Color bgColor = enabled ? Color.white : Color.gray;
+            quantityTextField.setEnabled(enabled);
+            quantityTextField.setBackground(bgColor);
+        }
+
+        private void enableOrderSide(boolean enabled) {
+            Color labelColor = enabled ? Color.black : Color.gray;
+            Color bgColor = enabled ? Color.white : Color.gray;
+            sideComboBox.setEnabled(enabled);
+            sideComboBox.setBackground(bgColor);
         }
 
         private void enableLimitPrice(boolean enabled) {
@@ -200,7 +239,6 @@ public class OrderEntryPanel extends JPanel implements Observer {
             Color bgColor = enabled ? Color.white : Color.gray;
             limitPriceTextField.setEnabled(enabled);
             limitPriceTextField.setBackground(bgColor);
-            limitPriceLabel.setForeground(labelColor);
         }
     }
 
@@ -219,20 +257,28 @@ public class OrderEntryPanel extends JPanel implements Observer {
     private class SubmitListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             Order order = new Order();
-            order.setSide((OrderSide) sideComboBox.getSelectedItem());
             order.setType((OrderType) typeComboBox.getSelectedItem());
             order.setTIF((OrderTIF) tifComboBox.getSelectedItem());
 
-            order.setSymbol(symbolTextField.getText());
-            order.setQuantity(Integer.parseInt(quantityTextField.getText()));
-            order.setOpen(order.getQuantity());
-
             OrderType type = order.getType();
-            if (type == OrderType.LIMIT || type == OrderType.QUOTE)
+            if (type == OrderType.LIMIT) {
+                order.setSide((OrderSide) sideComboBox.getSelectedItem());
+                order.setSymbol(symbolTextField.getText());
                 order.setLimit(limitPriceTextField.getText());
-            if (type == OrderType.QUOTE)
+                order.setQuantity(Integer.parseInt(quantityTextField.getText()));
+            } else if (type == OrderType.RFQ) {
+                order.setSymbol(symbolTextField.getText());
+                order.setQuantity(Integer.parseInt(quantityTextField.getText()));
+            } else if (type == OrderType.QUOTE){
+                order.setSide((OrderSide) sideComboBox.getSelectedItem());
+                order.setSymbol(selectedOrder.getSymbol());
                 order.setQuoteReqID(selectedOrder.getQuoteReqID());
+                order.setLimit(limitPriceTextField.getText());
+                order.setQuantity(selectedOrder.getQuantity());
+            }
+
             order.setSessionID((SessionID) sessionComboBox.getSelectedItem());
+            order.setOpen(order.getQuantity());
 
             orderTableModel.addOrder(order);
             application.send(order);

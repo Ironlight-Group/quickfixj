@@ -189,6 +189,7 @@ public class BanzaiApplication implements Application {
                         quoteRequest.setQuoteReqID(message.getString(QuoteReqID.FIELD));
                         quoteRequest.setQuantity(group.getInt(OrderQty.FIELD));
                         quoteRequest.setType(OrderType.RFQ);
+                        quoteRequest.setOpen(1);
                         orderTableModel.addOrder(quoteRequest);
                     } else if (message.getHeader().getField(msgType).valueEquals("S")) {
                         System.out.println("Got quote");
@@ -201,9 +202,9 @@ public class BanzaiApplication implements Application {
                             quote.setLimit(message.getDouble(BidPx.FIELD));
                         } else {
                             quote.setQuantity(message.getInt(OfferSize.FIELD));
-                            quote.setLimit(message.getDouble(OfferPx.FIELD));
                         }
                         quote.setType(OrderType.QUOTE);
+                        quote.setOpen(1);
                         orderTableModel.addOrder(quote);
                     } else {
                         sendBusinessReject(message, BusinessRejectReason.UNSUPPORTED_MESSAGE_TYPE,
@@ -646,10 +647,10 @@ public class BanzaiApplication implements Application {
     static {
         sideMap.put(OrderSide.BUY, new Side(Side.BUY));
         sideMap.put(OrderSide.SELL, new Side(Side.SELL));
-        sideMap.put(OrderSide.SHORT_SELL, new Side(Side.SELL_SHORT));
-        sideMap.put(OrderSide.SHORT_SELL_EXEMPT, new Side(Side.SELL_SHORT_EXEMPT));
-        sideMap.put(OrderSide.CROSS, new Side(Side.CROSS));
-        sideMap.put(OrderSide.CROSS_SHORT, new Side(Side.CROSS_SHORT));
+        // sideMap.put(OrderSide.SHORT_SELL, new Side(Side.SELL_SHORT));
+        // sideMap.put(OrderSide.SHORT_SELL_EXEMPT, new Side(Side.SELL_SHORT_EXEMPT));
+        // sideMap.put(OrderSide.CROSS, new Side(Side.CROSS));
+        // sideMap.put(OrderSide.CROSS_SHORT, new Side(Side.CROSS_SHORT));
 
         typeMap.put(OrderType.LIMIT, new OrdType(OrdType.LIMIT));
 

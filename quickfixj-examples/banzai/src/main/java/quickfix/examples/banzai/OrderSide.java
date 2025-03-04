@@ -26,15 +26,14 @@ public class OrderSide {
     static private final Map<String, OrderSide> known = new HashMap<>();
     static public final OrderSide BUY = new OrderSide("Buy");
     static public final OrderSide SELL = new OrderSide("Sell");
-    static public final OrderSide SHORT_SELL = new OrderSide("Short Sell");
-    static public final OrderSide SHORT_SELL_EXEMPT = new OrderSide("Short Sell Exempt");
-    static public final OrderSide CROSS = new OrderSide("Cross");
-    static public final OrderSide CROSS_SHORT = new OrderSide("Cross Short");
-    static public final OrderSide CROSS_SHORT_EXEMPT = new OrderSide("Cross Short Exempt");
+    // static public final OrderSide SHORT_SELL = new OrderSide("Short Sell");
+    // static public final OrderSide SHORT_SELL_EXEMPT = new OrderSide("Short Sell Exempt");
+    // static public final OrderSide CROSS = new OrderSide("Cross");
+    // static public final OrderSide CROSS_SHORT = new OrderSide("Cross Short");
+    // static public final OrderSide CROSS_SHORT_EXEMPT = new OrderSide("Cross Short Exempt");
 
     static private final OrderSide[] array = {
-            BUY, SELL, SHORT_SELL, SHORT_SELL_EXEMPT,
-            CROSS, CROSS_SHORT, CROSS_SHORT_EXEMPT
+            BUY, SELL
     };
 
     private final String name;

@@ -34,9 +34,7 @@ public class CancelReplacePanel extends JPanel {
     private final DoubleNumberTextField quotePriceTextField = new DoubleNumberTextField();
     private final JButton cancelButton = new JButton("Cancel");
     private final JButton replaceButton = new JButton("Replace");
-    private final JButton quoteButton = new JButton("Quote");
-    private final JButton hitButton = new JButton("Hit");
-    private final JButton liftButton = new JButton("Lift");
+    private final JButton hitLiftButton = new JButton("Hit/Lift");
     private Order order = null;
 
     private final GridBagConstraints constraints = new GridBagConstraints();
@@ -47,9 +45,7 @@ public class CancelReplacePanel extends JPanel {
         this.application = application;
         cancelButton.addActionListener(new CancelListener());
         replaceButton.addActionListener(new ReplaceListener());
-        quoteButton.addActionListener(new QuoteListener());
-        hitButton.addActionListener(new HitListener());
-        liftButton.addActionListener(new LiftListener());
+        hitLiftButton.addActionListener(new HitLiftListener());
 
         setLayout(new GridBagLayout());
         createComponents();
@@ -58,9 +54,7 @@ public class CancelReplacePanel extends JPanel {
     public void addActionListener(ActionListener listener) {
         cancelButton.addActionListener(listener);
         replaceButton.addActionListener(listener);
-        quoteButton.addActionListener(listener);
-        hitButton.addActionListener(listener);
-        liftButton.addActionListener(listener);
+        hitLiftButton.addActionListener(listener);
     }
 
     private void createComponents() {
@@ -82,14 +76,7 @@ public class CancelReplacePanel extends JPanel {
         constraints.weightx = 5;
         add(limitPriceTextField, ++x, y);
         constraints.weightx = 1;
-        add(quoteButton, ++x, y);
-        constraints.weightx = 0;
-        add(quotePriceLabel, ++x, y);
-        constraints.weightx = 5;
-        add(quotePriceTextField, ++x, y);
-        constraints.weightx = 1;
-        add(hitButton, ++x, y);
-        add(liftButton, ++x, y);
+        add(hitLiftButton, ++x, y);
     }
 
     public void setEnabled(boolean enabled) {
@@ -98,9 +85,7 @@ public class CancelReplacePanel extends JPanel {
         quantityTextField.setEnabled(enabled);
         limitPriceTextField.setEnabled(enabled);
         quotePriceTextField.setEnabled(enabled);
-        hitButton.setEnabled(enabled);
-        liftButton.setEnabled(enabled);
-        quoteButton.setEnabled(enabled);
+        hitLiftButton.setEnabled(enabled);
 
         Color labelColor = enabled ? Color.black : Color.gray;
         Color bgColor = enabled ? Color.white : Color.gray;
@@ -157,24 +142,18 @@ public class CancelReplacePanel extends JPanel {
         }
     }
 
-    private class QuoteListener implements ActionListener {
+    private class HitLiftListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            System.out.println("Quoted.");
-            System.out.println(order.getType());
-        }
-    }
-
-    private class HitListener implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            System.out.println("Hit.");
-            System.out.println(order.getType());
-        }
-    }
-
-    private class LiftListener implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            System.out.println("Lifted.");
-            System.out.println(order.getType());
+            if (order.getType() != OrderType.QUOTE) {
+                return;
+            }
+            if (order.getSide() == OrderSide.BUY) {
+                System.out.println("Hit.");
+            } else if (order.getSide() == OrderSide.SELL) {
+                System.out.println("Lifted.");
+            } else {
+                System.out.println("Unsupported Side.");
+            }
         }
     }
 }

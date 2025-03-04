@@ -27,9 +27,9 @@ public class Order implements Cloneable {
     private int quantity = 0;
     private int open = 0;
     private double executed = 0;
-    private OrderSide side = OrderSide.BUY;
-    private OrderType type = OrderType.LIMIT;
-    private OrderTIF tif = OrderTIF.DAY;
+    private OrderSide side = null;
+    private OrderType type = null;
+    private OrderTIF tif = null;
     private Double limit = null;
     private double avgPx = 0.0;
     private boolean rejected = false;
