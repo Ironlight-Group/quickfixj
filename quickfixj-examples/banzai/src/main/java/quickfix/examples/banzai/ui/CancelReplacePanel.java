@@ -101,6 +101,7 @@ public class CancelReplacePanel extends JPanel {
         setOrder(this.order);
     }
 
+    //TODO hit/lift based on this order data
     public void setOrder(Order order) {
         if (order == null)
             return;
@@ -147,13 +148,21 @@ public class CancelReplacePanel extends JPanel {
             if (order.getType() != OrderType.QUOTE) {
                 return;
             }
+            Order quoteResponse = new Order();
+            quoteResponse.setType(OrderType.QUOTE_RESPONSE);
+            quoteResponse.setQuoteRespType(1);
+
+            quoteResponse.setQuoteID(order.getQuoteID());
+
             if (order.getSide() == OrderSide.BUY) {
-                System.out.println("Hit.");
+
             } else if (order.getSide() == OrderSide.SELL) {
                 System.out.println("Lifted.");
             } else {
                 System.out.println("Unsupported Side.");
+                return;
             }
+            application.send(quoteResponse);
         }
     }
 }

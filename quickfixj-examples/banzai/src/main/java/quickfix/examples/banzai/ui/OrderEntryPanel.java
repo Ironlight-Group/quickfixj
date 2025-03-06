@@ -181,12 +181,12 @@ public class OrderEntryPanel extends JPanel implements Observer {
 
         if (type == OrderType.LIMIT) {
             submitButton.setEnabled(sessionEntered && limitEntered && quantityEntered && symbolEntered);
-        }
-        else if (type == OrderType.RFQ) {
+        } else if (type == OrderType.RFQ) {
             submitButton.setEnabled(sessionEntered && quantityEntered && symbolEntered);
-        }
-        else if (type == OrderType.QUOTE) {
+        } else if (type == OrderType.QUOTE) {
             submitButton.setEnabled(sessionEntered && limitEntered);
+        } else if (type == OrderType.QUOTE_RESPONSE) {
+            submitButton.setEnabled(sessionEntered);
         }
     }
 
@@ -208,6 +208,11 @@ public class OrderEntryPanel extends JPanel implements Observer {
                 enableLimitPrice(true);
                 enableQuantity(false);
                 enableOrderSide(true);
+                enableSymbol(false);
+            } else if (item == OrderType.QUOTE_RESPONSE) {
+                enableLimitPrice(false);
+                enableQuantity(false);
+                enableOrderSide(false);
                 enableSymbol(false);
             }
             activateSubmit();
@@ -269,12 +274,19 @@ public class OrderEntryPanel extends JPanel implements Observer {
             } else if (type == OrderType.RFQ) {
                 order.setSymbol(symbolTextField.getText());
                 order.setQuantity(Integer.parseInt(quantityTextField.getText()));
-            } else if (type == OrderType.QUOTE){
+            } else if (type == OrderType.QUOTE) {
                 order.setSide((OrderSide) sideComboBox.getSelectedItem());
                 order.setSymbol(selectedOrder.getSymbol());
                 order.setQuoteReqID(selectedOrder.getQuoteReqID());
                 order.setLimit(limitPriceTextField.getText());
                 order.setQuantity(selectedOrder.getQuantity());
+            } else if (type == OrderType.QUOTE_RESPONSE) {
+                order.setQuoteRespType(1);
+                order.setQuoteID(selectedOrder.getQuoteID());
+                order.setSymbol(selectedOrder.getSymbol());
+                order.setLimit(selectedOrder.getLimit());
+                order.setQuantity(selectedOrder.getQuantity());
+                order.setSide(selectedOrder.getSide());
             }
 
             order.setSessionID((SessionID) sessionComboBox.getSelectedItem());

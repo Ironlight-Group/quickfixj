@@ -72,6 +72,11 @@ import quickfix.field.TimeInForce;
 import quickfix.field.TransactTime;
 import quickfix.field.BidSize;
 import quickfix.field.OfferSize;
+import quickfix.field.QuoteRespID;
+import quickfix.field.QuoteRespType;
+import quickfix.field.NoQuoteSets;
+import quickfix.fix44.component.Instrument;
+import quickfix.fix44.component.OrderQtyData;
 
 import javax.swing.*;
 import java.math.BigDecimal;
@@ -460,6 +465,32 @@ public class BanzaiApplication implements Application {
             quote.set(new QuoteReqID(order.getQuoteReqID()));
 
             send(populateOrder(order, quote), order.getSessionID());
+        }  else if (order.getType() == OrderType.QUOTE_RESPONSE) {
+            quickfix.fix44.QuoteResponse quoteResponse = new quickfix.fix44.QuoteResponse(
+                new QuoteRespID(order.getID()),
+                new QuoteRespType(order.getQuoteRespType()));
+
+            quoteResponse.set(new QuoteID(order.getQuoteID()));
+            quoteResponse.set(new ClOrdID(order.getID()));
+            quoteResponse.set(new Price(order.getLimit()));
+
+            if (order.getSide() == OrderSide.BUY) {
+                quoteResponse.set(sideToFIXSide(OrderSide.SELL));
+            } else if (order.getSide() == OrderSide.SELL) {
+                quoteResponse.set(sideToFIXSide(OrderSide.BUY));
+            } else {
+                System.out.println("Unrecognized side");
+            }
+
+            OrderQtyData orderQtyData = new OrderQtyData();
+            orderQtyData.set(new OrderQty(order.getQuantity()));
+            quoteResponse.set(orderQtyData);
+
+            Instrument instrument = new Instrument();
+            instrument.set(new Symbol(order.getSymbol()));
+            quoteResponse.set(instrument);
+
+            send(populateOrder(order, quoteResponse), order.getSessionID());
         } else {
            System.out.println("Something went wrong."); 
         }

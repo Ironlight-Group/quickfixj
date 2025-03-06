@@ -96,6 +96,7 @@ public class BanzaiPanel extends JPanel implements Observer, ActionListener {
         selection.clearSelection();
     }
 
+    //This handles information from clicking on an order (e.g. quoteReqID from a quote request when sending a quote)
     private class OrderSelection implements ListSelectionListener {
         public void valueChanged(ListSelectionEvent e) {
             ListSelectionModel selection = orderPanel.orderTable().getSelectionModel();
