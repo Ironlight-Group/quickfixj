@@ -34,7 +34,6 @@ public class CancelReplacePanel extends JPanel {
     private final DoubleNumberTextField quotePriceTextField = new DoubleNumberTextField();
     private final JButton cancelButton = new JButton("Cancel");
     private final JButton replaceButton = new JButton("Replace");
-    private final JButton hitLiftButton = new JButton("Hit/Lift");
     private Order order = null;
 
     private final GridBagConstraints constraints = new GridBagConstraints();
@@ -45,7 +44,6 @@ public class CancelReplacePanel extends JPanel {
         this.application = application;
         cancelButton.addActionListener(new CancelListener());
         replaceButton.addActionListener(new ReplaceListener());
-        hitLiftButton.addActionListener(new HitLiftListener());
 
         setLayout(new GridBagLayout());
         createComponents();
@@ -54,7 +52,6 @@ public class CancelReplacePanel extends JPanel {
     public void addActionListener(ActionListener listener) {
         cancelButton.addActionListener(listener);
         replaceButton.addActionListener(listener);
-        hitLiftButton.addActionListener(listener);
     }
 
     private void createComponents() {
@@ -75,8 +72,6 @@ public class CancelReplacePanel extends JPanel {
         add(limitPriceLabel, ++x, y);
         constraints.weightx = 5;
         add(limitPriceTextField, ++x, y);
-        constraints.weightx = 1;
-        add(hitLiftButton, ++x, y);
     }
 
     public void setEnabled(boolean enabled) {
@@ -85,7 +80,6 @@ public class CancelReplacePanel extends JPanel {
         quantityTextField.setEnabled(enabled);
         limitPriceTextField.setEnabled(enabled);
         quotePriceTextField.setEnabled(enabled);
-        hitLiftButton.setEnabled(enabled);
 
         Color labelColor = enabled ? Color.black : Color.gray;
         Color bgColor = enabled ? Color.white : Color.gray;
@@ -101,7 +95,6 @@ public class CancelReplacePanel extends JPanel {
         setOrder(this.order);
     }
 
-    //TODO hit/lift based on this order data
     public void setOrder(Order order) {
         if (order == null)
             return;
@@ -140,29 +133,6 @@ public class CancelReplacePanel extends JPanel {
             newOrder.setExecuted(0);
 
             application.replace(order, newOrder);
-        }
-    }
-
-    private class HitLiftListener implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            if (order.getType() != OrderType.QUOTE) {
-                return;
-            }
-            Order quoteResponse = new Order();
-            quoteResponse.setType(OrderType.QUOTE_RESPONSE);
-            quoteResponse.setQuoteRespType(1);
-
-            quoteResponse.setQuoteID(order.getQuoteID());
-
-            if (order.getSide() == OrderSide.BUY) {
-
-            } else if (order.getSide() == OrderSide.SELL) {
-                System.out.println("Lifted.");
-            } else {
-                System.out.println("Unsupported Side.");
-                return;
-            }
-            application.send(quoteResponse);
         }
     }
 }
