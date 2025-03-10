@@ -526,6 +526,9 @@ public class BanzaiApplication implements Application {
             case "FIX.4.2":
                 cancel42(order);
                 break;
+            case "FIX.4.4":
+                cancel44(order);
+                break;
         }
     }
 
@@ -562,6 +565,22 @@ public class BanzaiApplication implements Application {
         send(message, order.getSessionID());
     }
 
+    public void cancel44(Order order) {
+        String id = order.generateID();
+        quickfix.fix44.OrderCancelRequest message = new quickfix.fix44.OrderCancelRequest(
+                new OrigClOrdID(order.getID()),
+                new ClOrdID(id),
+                sideToFIXSide(order.getSide()),
+                new TransactTime()
+        );
+
+        message.setField(new Symbol(order.getSymbol()));
+        message.setField(new OrderQty(order.getQuantity()));
+
+        orderTableModel.addID(order, id);
+        send(message, order.getSessionID());
+    }
+
     public void replace(Order order, Order newOrder) {
         String beginString = order.getSessionID().getBeginString();
         switch (beginString) {
@@ -573,6 +592,9 @@ public class BanzaiApplication implements Application {
                 break;
             case "FIX.4.2":
                 replace42(order, newOrder);
+                break;
+            case "FIX.4.4":
+                replace44(order, newOrder);
                 break;
         }
     }
@@ -607,6 +629,25 @@ public class BanzaiApplication implements Application {
         send(populateCancelReplace(order, newOrder, message), order.getSessionID());
     }
 
+    public void replace44(Order order, Order newOrder) {
+        String newOrderId = newOrder.getID();
+        quickfix.fix44.OrderCancelReplaceRequest message = new quickfix.fix44.OrderCancelReplaceRequest(
+            new OrigClOrdID(order.getID()),
+            new ClOrdID(newOrderId),
+            sideToFIXSide(order.getSide()),
+            new TransactTime(),
+            typeToFIXType(order.getType())
+        );
+
+        message.setField(new HandlInst('1'));
+        message.setField(new Symbol(order.getSymbol()));
+        message.setField(new OrderQty(order.getQuantity()));
+
+        orderTableModel.addID(order, newOrderId);
+        send(populateCancelReplace(order, newOrder, message), order.getSessionID());
+    }
+
+    //Helper method for replace
     Message populateCancelReplace(Order order, Order newOrder, quickfix.Message message) {
 
         if (order.getQuantity() != newOrder.getQuantity())
