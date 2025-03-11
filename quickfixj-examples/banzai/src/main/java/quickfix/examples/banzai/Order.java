@@ -62,6 +62,7 @@ public class Order implements Cloneable {
         return null;
     }
 
+    //Use this for cases where an ID simply needs to be unique
     public String generateID() {
         return Long.toString(System.currentTimeMillis() + (nextID++));
     }

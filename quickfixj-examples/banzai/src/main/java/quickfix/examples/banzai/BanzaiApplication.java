@@ -156,6 +156,7 @@ public class BanzaiApplication implements Application {
         }
     }
 
+    //Entry point for messages sent to the client
     public class MessageProcessor implements Runnable {
         private final quickfix.Message message;
         private final SessionID sessionID;
@@ -176,16 +177,15 @@ public class BanzaiApplication implements Application {
                     else if (message.getHeader().isSetField(DeliverToCompID.FIELD)) {
                         // This is here to support OpenFIX certification
                         sendSessionReject(message, SessionRejectReason.COMPID_PROBLEM);
-                    } else if (message.getHeader().getField(msgType).valueEquals("8")) {
+                    } else if (message.getHeader().getField(msgType).valueEquals(MsgType.EXECUTION_REPORT)) {
                         executionReport(message, sessionID);
-                    } else if (message.getHeader().getField(msgType).valueEquals("9")) {
+                    } else if (message.getHeader().getField(msgType).valueEquals(MsgType.ORDER_CANCEL_REJECT)) {
                         cancelReject(message, sessionID);
-                    } else if (message.getHeader().getField(msgType).valueEquals("AI")) {
+                    } else if (message.getHeader().getField(msgType).valueEquals(MsgType.QUOTE_STATUS_REPORT)) {
                         System.out.println("Got quote status report");
-                    } else if (message.getHeader().getField(msgType).valueEquals("AG")) {
+                    } else if (message.getHeader().getField(msgType).valueEquals(MsgType.QUOTE_REQUEST_REJECT)) {
                         System.out.println("Got quote reject");
-                    } else if (message.getHeader().getField(msgType).valueEquals("R")) {
-                        System.out.println("Got quote Request");
+                    } else if (message.getHeader().getField(msgType).valueEquals(MsgType.QUOTE_REQUEST)) {
                         System.out.println(message.toString());
                         Order quoteRequest = new Order();
                         Group noRelatedSymGroup = new quickfix.fix44.QuoteRequest.NoRelatedSym();
@@ -196,8 +196,8 @@ public class BanzaiApplication implements Application {
                         quoteRequest.setType(OrderType.RFQ);
                         quoteRequest.setOpen(1);
                         orderTableModel.addOrder(quoteRequest);
-                    } else if (message.getHeader().getField(msgType).valueEquals("S")) {
-                        System.out.println("Got quote");
+
+                    } else if (message.getHeader().getField(msgType).valueEquals(MsgType.QUOTE)) {
                         System.out.println(message.toString());
                         Order quote = new Order();
                         quote.setSymbol(message.getString(Symbol.FIELD));
@@ -214,6 +214,7 @@ public class BanzaiApplication implements Application {
                         quote.setType(OrderType.QUOTE);
                         quote.setOpen(1);
                         orderTableModel.addOrder(quote);
+
                     } else {
                         sendBusinessReject(message, BusinessRejectReason.UNSUPPORTED_MESSAGE_TYPE,
                                 "Unsupported Message Type");
@@ -278,12 +279,12 @@ public class BanzaiApplication implements Application {
         if (message.isSetField(LastShares.FIELD)) {
             LastShares lastShares = new LastShares();
             message.getField(lastShares);
-            fillSize = new BigDecimal("" + lastShares.getValue());
+            fillSize = new BigDecimal(lastShares.getValue());
         } else {
             // > FIX 4.1
             LeavesQty leavesQty = new LeavesQty();
             message.getField(leavesQty);
-            fillSize = new BigDecimal(order.getQuantity()).subtract(new BigDecimal("" + leavesQty.getValue()));
+            fillSize = new BigDecimal(order.getQuantity()).subtract(new BigDecimal(leavesQty.getValue()));
         }
 
         if (fillSize.compareTo(BigDecimal.ZERO) > 0) {
@@ -449,6 +450,7 @@ public class BanzaiApplication implements Application {
             newOrderSingle.set(new HandlInst('1'));
 
             send(populateOrder(order, newOrderSingle), order.getSessionID());
+
         } else if (order.getType() == OrderType.QUOTE) {
             quickfix.fix44.Quote quote = new quickfix.fix44.Quote(new QuoteID(order.getID()));
             quote.set(new QuoteType(1));
@@ -463,8 +465,8 @@ public class BanzaiApplication implements Application {
             }
 
             quote.set(new QuoteReqID(order.getQuoteReqID()));
-
             send(populateOrder(order, quote), order.getSessionID());
+
         }  else if (order.getType() == OrderType.QUOTE_RESPONSE) {
             quickfix.fix44.QuoteResponse quoteResponse = new quickfix.fix44.QuoteResponse(
                 new QuoteRespID(order.getID()),
@@ -474,6 +476,8 @@ public class BanzaiApplication implements Application {
             quoteResponse.set(new ClOrdID(order.getID()));
             quoteResponse.set(new Price(order.getLimit()));
 
+            //Orderside is earlier copied off the quote, so we need to invert it here for order terms to match
+            //(e.g. send a sell response to a buy quote, and buy to a sell quote)
             if (order.getSide() == OrderSide.BUY) {
                 quoteResponse.set(sideToFIXSide(OrderSide.SELL));
             } else if (order.getSide() == OrderSide.SELL) {
@@ -491,6 +495,7 @@ public class BanzaiApplication implements Application {
             quoteResponse.set(instrument);
 
             send(populateOrder(order, quoteResponse), order.getSessionID());
+
         } else {
            System.out.println("Something went wrong."); 
         }
@@ -721,14 +726,12 @@ public class BanzaiApplication implements Application {
     }
 
     static {
+        //Mapping between custom order sides, types, TIF and FIX order sides, types, TIF
         sideMap.put(OrderSide.BUY, new Side(Side.BUY));
         sideMap.put(OrderSide.SELL, new Side(Side.SELL));
-        // sideMap.put(OrderSide.SHORT_SELL, new Side(Side.SELL_SHORT));
-        // sideMap.put(OrderSide.SHORT_SELL_EXEMPT, new Side(Side.SELL_SHORT_EXEMPT));
-        // sideMap.put(OrderSide.CROSS, new Side(Side.CROSS));
-        // sideMap.put(OrderSide.CROSS_SHORT, new Side(Side.CROSS_SHORT));
 
         typeMap.put(OrderType.LIMIT, new OrdType(OrdType.LIMIT));
+
 
         tifMap.put(OrderTIF.DAY, new TimeInForce(TimeInForce.DAY));
         tifMap.put(OrderTIF.IOC, new TimeInForce(TimeInForce.IMMEDIATE_OR_CANCEL));
