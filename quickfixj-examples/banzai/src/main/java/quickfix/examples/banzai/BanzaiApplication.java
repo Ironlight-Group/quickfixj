@@ -185,6 +185,8 @@ public class BanzaiApplication implements Application {
                         System.out.println("Got quote status report");
                     } else if (message.getHeader().getField(msgType).valueEquals(MsgType.QUOTE_REQUEST_REJECT)) {
                         System.out.println("Got quote reject");
+                    } else if (message.getHeader().getField(msgType).valueEquals(MsgType.QUOTE_RESPONSE)) {
+                        System.out.println("Got quote response");
                     } else if (message.getHeader().getField(msgType).valueEquals(MsgType.QUOTE_REQUEST)) {
                         System.out.println(message.toString());
                         Order quoteRequest = new Order();
