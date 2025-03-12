@@ -174,7 +174,8 @@ public class OrderEntryPanel extends JPanel implements Observer {
         return component;
     }
 
-    //Determines whether orders are submittable based on entered information
+    //Determines whether the submit button is enabled based on
+    //whether enough information has been entered to construct a valid order of the selected type.
     private void activateSubmit() {
         OrderType type = (OrderType) typeComboBox.getSelectedItem();
         boolean activate = symbolEntered && quantityEntered && sessionEntered;
@@ -190,7 +191,7 @@ public class OrderEntryPanel extends JPanel implements Observer {
         }
     }
 
-    //Enables and disables price, side, quantity depending on order type
+    //Enables and disables price, side, quantity depending on whether it's appropriate for the order type
     private class PriceListener implements ItemListener {
         public void itemStateChanged(ItemEvent e) {
             OrderType item = (OrderType) typeComboBox.getSelectedItem();
@@ -219,28 +220,24 @@ public class OrderEntryPanel extends JPanel implements Observer {
         }
 
         private void enableSymbol(boolean enabled) {
-            Color labelColor = enabled ? Color.black : Color.gray;
             Color bgColor = enabled ? Color.white : Color.gray;
             symbolTextField.setEnabled(enabled);
             symbolTextField.setBackground(bgColor);
         }
 
         private void enableQuantity(boolean enabled) {
-            Color labelColor = enabled ? Color.black : Color.gray;
             Color bgColor = enabled ? Color.white : Color.gray;
             quantityTextField.setEnabled(enabled);
             quantityTextField.setBackground(bgColor);
         }
 
         private void enableOrderSide(boolean enabled) {
-            Color labelColor = enabled ? Color.black : Color.gray;
             Color bgColor = enabled ? Color.white : Color.gray;
             sideComboBox.setEnabled(enabled);
             sideComboBox.setBackground(bgColor);
         }
 
         private void enableLimitPrice(boolean enabled) {
-            Color labelColor = enabled ? Color.black : Color.gray;
             Color bgColor = enabled ? Color.white : Color.gray;
             limitPriceTextField.setEnabled(enabled);
             limitPriceTextField.setBackground(bgColor);
