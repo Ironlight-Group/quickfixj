@@ -43,6 +43,7 @@ public class Order implements Cloneable {
     private String quoteID = null;
     private int quoteRespType = 0;
     private String quoteRespID = null;
+    private boolean interactable = true;
 
     public Order() {
         ID = generateID();
@@ -231,5 +232,13 @@ public class Order implements Cloneable {
 
     public String getQuoteRespID() {
         return quoteRespID;
+    }
+
+    public boolean getInteractable() {
+        return interactable;
+    }
+
+    public void updateInteractable() {
+        this.interactable = (type == OrderType.LIMIT);
     }
 }

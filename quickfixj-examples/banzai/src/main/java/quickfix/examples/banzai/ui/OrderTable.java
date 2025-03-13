@@ -44,6 +44,7 @@ public class OrderTable extends JTable implements MouseListener {
         double executed = order.getExecuted();
         boolean rejected = order.getRejected();
         boolean canceled = order.getCanceled();
+        boolean interactable = order.getInteractable();
 
         DefaultTableCellRenderer r = (DefaultTableCellRenderer) renderer;
         r.setForeground(Color.black);
@@ -54,10 +55,12 @@ public class OrderTable extends JTable implements MouseListener {
             r.setBackground(Color.white);
         else if (open == 0 && executed == 0.0)
             r.setBackground(Color.yellow);
-        else if (open > 0)
-            r.setBackground(Color.green);
         else if (open == 0)
             r.setBackground(Color.white);
+        else if (!interactable)
+            r.setBackground(Color.cyan);
+        else if (open > 0)
+            r.setBackground(Color.green);
 
         return super.prepareRenderer(renderer, row, column);
     }

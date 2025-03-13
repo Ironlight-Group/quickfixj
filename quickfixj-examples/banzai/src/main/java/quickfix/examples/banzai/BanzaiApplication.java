@@ -196,7 +196,7 @@ public class BanzaiApplication implements Application {
                         quoteRequest.setQuoteReqID(message.getString(QuoteReqID.FIELD));
                         quoteRequest.setQuantity(group.getInt(OrderQty.FIELD));
                         quoteRequest.setType(OrderType.RFQ);
-                        quoteRequest.setOpen(1);
+                        quoteRequest.setOpen(quoteRequest.getQuantity());
                         orderTableModel.addOrder(quoteRequest);
 
                     } else if (message.getHeader().getField(msgType).valueEquals(MsgType.QUOTE)) {
@@ -214,7 +214,7 @@ public class BanzaiApplication implements Application {
                             quote.setSide(OrderSide.SELL);
                         }
                         quote.setType(OrderType.QUOTE);
-                        quote.setOpen(1);
+                        quote.setOpen(quote.getQuantity());
                         orderTableModel.addOrder(quote);
 
                     } else {
@@ -433,6 +433,7 @@ public class BanzaiApplication implements Application {
     }
 
     public void send44(Order order) {
+        order.updateInteractable();
         if (order.getType() == OrderType.RFQ) {
             quickfix.fix44.QuoteRequest quoteRequest = new quickfix.fix44.QuoteRequest(new QuoteReqID(order.getID()));
             quickfix.fix44.QuoteRequest.NoRelatedSym noRelatedSym = new quickfix.fix44.QuoteRequest.NoRelatedSym();
@@ -495,6 +496,7 @@ public class BanzaiApplication implements Application {
             Instrument instrument = new Instrument();
             instrument.set(new Symbol(order.getSymbol()));
             quoteResponse.set(instrument);
+            order.setOpen(0);
 
             send(populateOrder(order, quoteResponse), order.getSessionID());
 
