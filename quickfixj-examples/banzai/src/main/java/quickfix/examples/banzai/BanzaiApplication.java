@@ -74,7 +74,7 @@ import quickfix.field.BidSize;
 import quickfix.field.OfferSize;
 import quickfix.field.QuoteRespID;
 import quickfix.field.QuoteRespType;
-import quickfix.field.NoQuoteSets;
+import quickfix.field.ExecType;
 import quickfix.fix44.component.Instrument;
 import quickfix.fix44.component.OrderQtyData;
 
@@ -289,6 +289,14 @@ public class BanzaiApplication implements Application {
             fillSize = new BigDecimal(order.getQuantity()).subtract(new BigDecimal(leavesQty.getValue()));
         }
 
+        ExecType execType = new ExecType();
+
+        //Handle cancel replace
+        if (message.getField(execType).getValue() == ExecType.REPLACED) {
+            BigDecimal bigQuantity = new BigDecimal(order.getQuantity());
+            order.setQuantity((int) bigQuantity.subtract(fillSize).intValue());
+        }
+
         if (fillSize.compareTo(BigDecimal.ZERO) > 0) {
             order.setOpen(order.getOpen() - (int) Double.parseDouble(fillSize.toPlainString()));
             order.setExecuted(Double.parseDouble(message.getString(CumQty.FIELD)));
@@ -318,7 +326,7 @@ public class BanzaiApplication implements Application {
         orderTableModel.updateOrder(order, message.getField(new ClOrdID()).getValue());
         observableOrder.update(order);
 
-        if (fillSize.compareTo(BigDecimal.ZERO) > 0) {
+        if (fillSize.compareTo(BigDecimal.ZERO) > 0 && message.getField(execType).getValue() != ExecType.REPLACED) {
             Execution execution = new Execution();
             execution.setExchangeID(sessionID + message.getField(new ExecID()).getValue());
 
