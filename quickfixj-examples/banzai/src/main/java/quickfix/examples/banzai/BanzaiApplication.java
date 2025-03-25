@@ -289,15 +289,27 @@ public class BanzaiApplication implements Application {
             fillSize = new BigDecimal(order.getQuantity()).subtract(new BigDecimal(leavesQty.getValue()));
         }
 
-        ExecType execType = new ExecType();
 
-        //Handle cancel replace
-        if (message.getField(execType).getValue() == ExecType.REPLACED) {
-            BigDecimal bigQuantity = new BigDecimal(order.getQuantity());
-            order.setQuantity((int) bigQuantity.subtract(fillSize).intValue());
+        BigDecimal cumQty = BigDecimal.ZERO;
+        BigDecimal leavesQty = BigDecimal.ZERO;
+
+        if (message.isSetField(CumQty.FIELD)) {
+            cumQty = new BigDecimal(message.getString(CumQty.FIELD));
         }
 
-        if (fillSize.compareTo(BigDecimal.ZERO) > 0) {
+        if (message.isSetField(LeavesQty.FIELD)) {
+            leavesQty = new BigDecimal(message.getString(LeavesQty.FIELD));
+        }
+
+        ExecType execType = new ExecType();
+
+        if (message.getField(execType).getValue() == ExecType.REPLACED) {
+            //handle cancel replace
+            BigDecimal newTotalQuantity = cumQty.add(leavesQty);
+            order.setQuantity(newTotalQuantity.intValue());
+            order.setOpen(leavesQty.intValue());
+        } else if (fillSize.compareTo(BigDecimal.ZERO) > 0) {
+            //handle other fills
             order.setOpen(order.getOpen() - (int) Double.parseDouble(fillSize.toPlainString()));
             order.setExecuted(Double.parseDouble(message.getString(CumQty.FIELD)));
             order.setAvgPx(Double.parseDouble(message.getString(AvgPx.FIELD)));
