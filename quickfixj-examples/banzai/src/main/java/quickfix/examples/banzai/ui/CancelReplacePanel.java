@@ -31,7 +31,6 @@ public class CancelReplacePanel extends JPanel {
     private final JLabel quotePriceLabel = new JLabel("Price");
     private final IntegerNumberTextField quantityTextField = new IntegerNumberTextField();
     private final DoubleNumberTextField limitPriceTextField = new DoubleNumberTextField();
-    private final DoubleNumberTextField quotePriceTextField = new DoubleNumberTextField();
     private final JButton cancelButton = new JButton("Cancel");
     private final JButton replaceButton = new JButton("Replace");
     private Order order = null;
@@ -79,13 +78,11 @@ public class CancelReplacePanel extends JPanel {
         replaceButton.setEnabled(enabled);
         quantityTextField.setEnabled(enabled);
         limitPriceTextField.setEnabled(enabled);
-        quotePriceTextField.setEnabled(enabled);
 
         Color labelColor = enabled ? Color.black : Color.gray;
         Color bgColor = enabled ? Color.white : Color.gray;
         quantityTextField.setBackground(bgColor);
         limitPriceTextField.setBackground(bgColor);
-        quotePriceTextField.setBackground(bgColor);
         quantityLabel.setForeground(labelColor);
         limitPriceLabel.setForeground(labelColor);
         quotePriceLabel.setForeground(labelColor);
