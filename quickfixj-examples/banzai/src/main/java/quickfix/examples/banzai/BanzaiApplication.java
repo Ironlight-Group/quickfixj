@@ -197,26 +197,67 @@ public class BanzaiApplication implements Application {
                         quoteRequest.setQuantity(group.getInt(OrderQty.FIELD));
                         quoteRequest.setType(OrderType.RFQ);
                         quoteRequest.setOpen(quoteRequest.getQuantity());
+                        if (group.isSetField(Side.FIELD)) {
+                            String side = group.getString(Side.FIELD);
+                            if (side.equals("1")) {
+                                quoteRequest.setSide(OrderSide.BUY);
+                            } else if (side.equals("2")) {
+                                quoteRequest.setSide(OrderSide.SELL);
+                            }
+                        }
                         orderTableModel.addOrder(quoteRequest);
 
                     } else if (message.getHeader().getField(msgType).valueEquals(MsgType.QUOTE)) {
-                        System.out.println(message.toString());
-                        Order quote = new Order();
-                        quote.setSymbol(message.getString(Symbol.FIELD));
-                        quote.setQuoteID(message.getString(QuoteID.FIELD));
-                        if (message.isSetField(BidPx.FIELD)) {
-                            quote.setQuantity(message.getInt(BidSize.FIELD));
-                            quote.setLimit(message.getDouble(BidPx.FIELD));
-                            quote.setSide(OrderSide.BUY);
-                        } else {
-                            quote.setQuantity(message.getInt(OfferSize.FIELD));
-                            quote.setLimit(message.getDouble(OfferPx.FIELD));
-                            quote.setSide(OrderSide.SELL);
-                        }
-                        quote.setType(OrderType.QUOTE);
-                        quote.setOpen(quote.getQuantity());
-                        orderTableModel.addOrder(quote);
 
+                        if (!message.isSetField(QuoteReqID.FIELD)) {
+                            System.err.println("Received Quote message without QuoteReqID (Tag 131). Cannot link to original request.");
+                            // TODO might be appropriate to send a reject here?
+                            return;
+                        }
+                        String quoteReqID = message.getString(QuoteReqID.FIELD);
+
+                        Order originalRequestOrder = orderTableModel.getOrder(quoteReqID);
+                        if (originalRequestOrder == null) {
+                            System.err.println("Received Quote for an unknown or previously cleared QuoteReqID: " + quoteReqID);
+                            // This should never happen
+                            return;
+                        }
+
+                        Order incomingQuoteOrder = new Order();
+                        incomingQuoteOrder.setSymbol(message.getString(Symbol.FIELD));
+                        incomingQuoteOrder.setQuoteID(message.getString(QuoteID.FIELD));
+
+                        // Determine the side of the incoming quote
+                        if (message.isSetField(BidPx.FIELD)) { // BUY
+                            incomingQuoteOrder.setQuantity(message.getInt(BidSize.FIELD));
+                            incomingQuoteOrder.setLimit(message.getDouble(BidPx.FIELD));
+                            incomingQuoteOrder.setSide(OrderSide.BUY);
+                        } else if (message.isSetField(OfferPx.FIELD)) { // SELL
+                            incomingQuoteOrder.setQuantity(message.getInt(OfferSize.FIELD));
+                            incomingQuoteOrder.setLimit(message.getDouble(OfferPx.FIELD));
+                            incomingQuoteOrder.setSide(OrderSide.SELL);
+                        }
+                        incomingQuoteOrder.setType(OrderType.QUOTE);
+                        incomingQuoteOrder.setOpen(incomingQuoteOrder.getQuantity());
+                        incomingQuoteOrder.setSessionID(sessionID); // Associate session
+
+                        OrderSide requestSide = originalRequestOrder.getSide();
+                        OrderSide quoteSide = incomingQuoteOrder.getSide();
+
+                        boolean addQuoteToTable = false;
+
+                        if (requestSide == null || requestSide == OrderSide.UNDISCLOSED) {
+                            // If the request did not specify a side, add the quote unconditionally
+                            addQuoteToTable = true;
+                        } else {
+                            // If the request specified a side, check if the quote side is opposite
+                            addQuoteToTable = (requestSide == OrderSide.BUY && quoteSide == OrderSide.SELL) ||
+                                              (requestSide == OrderSide.SELL && quoteSide == OrderSide.BUY);
+                        }
+
+                        if (addQuoteToTable) {
+                            orderTableModel.addOrder(incomingQuoteOrder);
+                        }
                     } else {
                         sendBusinessReject(message, BusinessRejectReason.UNSUPPORTED_MESSAGE_TYPE,
                                 "Unsupported Message Type");
@@ -457,6 +498,11 @@ public class BanzaiApplication implements Application {
         if (order.getType() == OrderType.RFQ) {
             quickfix.fix44.QuoteRequest quoteRequest = new quickfix.fix44.QuoteRequest(new QuoteReqID(order.getID()));
             quickfix.fix44.QuoteRequest.NoRelatedSym noRelatedSym = new quickfix.fix44.QuoteRequest.NoRelatedSym();
+
+            System.out.println(order.getSide());
+            if (order.getSide() == OrderSide.BUY || order.getSide() == OrderSide.SELL) {
+                noRelatedSym.set(sideToFIXSide(order.getSide()));
+            }
 
             noRelatedSym.set(new Symbol(order.getSymbol()));
             noRelatedSym.set(new OrderQty(order.getQuantity()));

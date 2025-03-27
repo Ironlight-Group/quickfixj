@@ -203,7 +203,7 @@ public class OrderEntryPanel extends JPanel implements Observer {
             } else if (item == OrderType.RFQ) {
                 enableLimitPrice(false);
                 enableQuantity(true);
-                enableOrderSide(false);
+                enableOrderSide(true);
                 enableSymbol(true);
             } else if (item == OrderType.QUOTE) {
                 enableLimitPrice(true);
@@ -269,6 +269,7 @@ public class OrderEntryPanel extends JPanel implements Observer {
                 order.setLimit(limitPriceTextField.getText());
                 order.setQuantity(Integer.parseInt(quantityTextField.getText()));
             } else if (type == OrderType.RFQ) {
+                order.setSide((OrderSide) sideComboBox.getSelectedItem());
                 order.setSymbol(symbolTextField.getText());
                 order.setQuantity(Integer.parseInt(quantityTextField.getText()));
             } else if (type == OrderType.QUOTE) {
