@@ -349,6 +349,9 @@ public class BanzaiApplication implements Application {
             BigDecimal newTotalQuantity = cumQty.add(leavesQty);
             order.setQuantity(newTotalQuantity.intValue());
             order.setOpen(leavesQty.intValue());
+            order.setLimit(message.getString(Price.FIELD));
+            //make sure limit works here
+
         } else if (fillSize.compareTo(BigDecimal.ZERO) > 0) {
             //handle other fills
             order.setOpen(order.getOpen() - (int) Double.parseDouble(fillSize.toPlainString()));
