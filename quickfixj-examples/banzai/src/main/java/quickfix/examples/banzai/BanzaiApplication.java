@@ -77,6 +77,7 @@ import quickfix.field.QuoteRespType;
 import quickfix.field.ExecType;
 import quickfix.fix44.component.Instrument;
 import quickfix.fix44.component.OrderQtyData;
+import quickfix.fix44.QuoteRequestReject;
 
 import javax.swing.*;
 import java.math.BigDecimal;
@@ -211,15 +212,18 @@ public class BanzaiApplication implements Application {
 
                         if (!message.isSetField(QuoteReqID.FIELD)) {
                             System.err.println("Received Quote message without QuoteReqID (Tag 131). Cannot link to original request.");
-                            // TODO might be appropriate to send a reject here?
+                            quickfix.fix44.QuoteRequestReject reject = new quickfix.fix44.QuoteRequestReject();
+                            reject.set(new QuoteReqID("N/A"));
+                            reject.set(new Text("Missing QuoteReqID (Tag 131)"));
+                            Session.sendToTarget(reject, sessionID);
                             return;
                         }
+
                         String quoteReqID = message.getString(QuoteReqID.FIELD);
 
                         Order originalRequestOrder = orderTableModel.getOrder(quoteReqID);
                         if (originalRequestOrder == null) {
                             System.err.println("Received Quote for an unknown or previously cleared QuoteReqID: " + quoteReqID);
-                            // This should never happen
                             return;
                         }
 
@@ -350,8 +354,6 @@ public class BanzaiApplication implements Application {
             order.setQuantity(newTotalQuantity.intValue());
             order.setOpen(leavesQty.intValue());
             order.setLimit(message.getString(Price.FIELD));
-            //make sure limit works here
-
         } else if (fillSize.compareTo(BigDecimal.ZERO) > 0) {
             //handle other fills
             order.setOpen(order.getOpen() - (int) Double.parseDouble(fillSize.toPlainString()));
