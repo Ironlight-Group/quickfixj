@@ -504,7 +504,6 @@ public class BanzaiApplication implements Application {
             quickfix.fix44.QuoteRequest quoteRequest = new quickfix.fix44.QuoteRequest(new QuoteReqID(order.getID()));
             quickfix.fix44.QuoteRequest.NoRelatedSym noRelatedSym = new quickfix.fix44.QuoteRequest.NoRelatedSym();
 
-            System.out.println(order.getSide());
             if (order.getSide() == OrderSide.BUY || order.getSide() == OrderSide.SELL) {
                 noRelatedSym.set(sideToFIXSide(order.getSide()));
             }
