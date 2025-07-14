@@ -57,7 +57,9 @@ import quickfix.field.OrdType;
 import quickfix.field.OrderQty;
 import quickfix.field.OrigClOrdID;
 import quickfix.field.QuoteReqID;
+import quickfix.field.QuoteCancelType;
 import quickfix.field.QuoteID;
+import quickfix.field.QuoteMsgID;
 import quickfix.field.QuoteType;
 import quickfix.field.Price;
 import quickfix.field.RefMsgType;
@@ -207,7 +209,6 @@ public class BanzaiApplication implements Application {
                             }
                         }
                         orderTableModel.addOrder(quoteRequest);
-
                     } else if (message.getHeader().getField(msgType).valueEquals(MsgType.QUOTE)) {
 
                         if (!message.isSetField(QuoteReqID.FIELD)) {
@@ -230,6 +231,7 @@ public class BanzaiApplication implements Application {
                         Order incomingQuoteOrder = new Order();
                         incomingQuoteOrder.setSymbol(message.getString(Symbol.FIELD));
                         incomingQuoteOrder.setQuoteID(message.getString(QuoteID.FIELD));
+                        incomingQuoteOrder.setQuoteReqID(quoteReqID);
 
                         // Determine the side of the incoming quote
                         if (message.isSetField(BidPx.FIELD)) { // BUY
@@ -520,7 +522,6 @@ public class BanzaiApplication implements Application {
 
             newOrderSingle.set(new Symbol(order.getSymbol()));
             newOrderSingle.set(new OrderQty(order.getQuantity()));
-            newOrderSingle.set(new HandlInst('1'));
 
             send(populateOrder(order, newOrderSingle), order.getSessionID());
 
@@ -606,7 +607,11 @@ public class BanzaiApplication implements Application {
                 cancel42(order);
                 break;
             case "FIX.4.4":
-                cancel44(order);
+                if (order.getType() == OrderType.QUOTE) {
+                    cancelQuote44(order);
+                } else {
+                    cancel44(order);
+                }
                 break;
         }
     }
@@ -657,6 +662,23 @@ public class BanzaiApplication implements Application {
         message.setField(new OrderQty(order.getQuantity()));
 
         orderTableModel.addID(order, id);
+        send(message, order.getSessionID());
+    }
+
+    public void cancelQuote44(Order order) {
+        String id = order.generateID();
+        quickfix.fix44.QuoteCancel message = new quickfix.fix44.QuoteCancel();
+        message.setField(new QuoteMsgID(id));
+        message.setField(new QuoteID(order.getID()));
+        message.setField(new QuoteReqID(order.getQuoteReqID()));
+        message.setField(new QuoteCancelType(QuoteCancelType.CANCEL_QUOTE_SPECIFIED_IN_QUOTEID));
+
+        quickfix.fix44.QuoteCancel.NoQuoteEntries nqe = new quickfix.fix44.QuoteCancel.NoQuoteEntries();
+        nqe.set(new Symbol(order.getSymbol()));
+        message.addGroup(nqe);
+
+        orderTableModel.addID(order, id);
+        System.out.println("Cancelling quote");
         send(message, order.getSessionID());
     }
 
