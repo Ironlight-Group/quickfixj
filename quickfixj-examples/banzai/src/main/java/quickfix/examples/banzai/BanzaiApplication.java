@@ -740,7 +740,6 @@ public class BanzaiApplication implements Application {
             typeToFIXType(order.getType())
         );
 
-        message.setField(new HandlInst('1'));
         message.setField(new Symbol(order.getSymbol()));
         message.setField(new OrderQty(order.getQuantity()));
         message.setField(new Price(order.getLimit()));
