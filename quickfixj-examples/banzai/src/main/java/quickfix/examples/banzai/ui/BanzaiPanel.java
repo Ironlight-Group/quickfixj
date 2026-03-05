@@ -81,7 +81,6 @@ public class BanzaiPanel extends JPanel implements Observer, ActionListener {
         add(cancelReplacePanel, constraints);
         cancelReplacePanel.setEnabled(false);
 
-        orderEntryPanel.addActionListener(this);
         orderPanel.orderTable().getSelectionModel().addListSelectionListener(new OrderSelection());
         cancelReplacePanel.addActionListener(this);
         application.addOrderObserver(this);
@@ -102,6 +101,7 @@ public class BanzaiPanel extends JPanel implements Observer, ActionListener {
             ListSelectionModel selection = orderPanel.orderTable().getSelectionModel();
             if (selection.isSelectionEmpty()) {
                 orderEntryPanel.clearMessage();
+                orderEntryPanel.setSelectedOrder(null);
                 return;
             }
 

@@ -526,6 +526,11 @@ public class BanzaiApplication implements Application {
             send(populateOrder(order, newOrderSingle), order.getSessionID());
 
         } else if (order.getType() == OrderType.QUOTE) {
+            String quoteReqID = order.getQuoteReqID();
+            if (quoteReqID == null || quoteReqID.trim().isEmpty()) {
+                System.err.println("Cannot send Quote without QuoteReqID (Tag 131). Select an RFQ request first.");
+                return;
+            }
             quickfix.fix44.Quote quote = new quickfix.fix44.Quote(new QuoteID(order.getID()));
             quote.set(new QuoteType(1));
             quote.set(new Symbol(order.getSymbol()));
@@ -538,7 +543,7 @@ public class BanzaiApplication implements Application {
                 quote.set(new OfferSize(order.getQuantity()));  
             }
 
-            quote.set(new QuoteReqID(order.getQuoteReqID()));
+            quote.set(new QuoteReqID(quoteReqID));
             send(populateOrder(order, quote), order.getSessionID());
 
         }  else if (order.getType() == OrderType.QUOTE_RESPONSE) {
@@ -666,11 +671,16 @@ public class BanzaiApplication implements Application {
     }
 
     public void cancelQuote44(Order order) {
+        String quoteReqID = order.getQuoteReqID();
+        if (quoteReqID == null || quoteReqID.trim().isEmpty()) {
+            System.err.println("Cannot cancel Quote without QuoteReqID (Tag 131).");
+            return;
+        }
         String id = order.generateID();
         quickfix.fix44.QuoteCancel message = new quickfix.fix44.QuoteCancel();
         message.setField(new QuoteMsgID(id));
         message.setField(new QuoteID(order.getID()));
-        message.setField(new QuoteReqID(order.getQuoteReqID()));
+        message.setField(new QuoteReqID(quoteReqID));
         message.setField(new QuoteCancelType(QuoteCancelType.CANCEL_QUOTE_SPECIFIED_IN_QUOTEID));
 
         quickfix.fix44.QuoteCancel.NoQuoteEntries nqe = new quickfix.fix44.QuoteCancel.NoQuoteEntries();

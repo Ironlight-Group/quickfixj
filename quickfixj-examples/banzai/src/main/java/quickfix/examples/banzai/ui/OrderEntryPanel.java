@@ -178,16 +178,18 @@ public class OrderEntryPanel extends JPanel implements Observer {
     //whether enough information has been entered to construct a valid order of the selected type.
     private void activateSubmit() {
         OrderType type = (OrderType) typeComboBox.getSelectedItem();
-        boolean activate = symbolEntered && quantityEntered && sessionEntered;
+        boolean hasSelectedOrder = selectedOrder != null;
+        boolean hasQuoteReqID = hasSelectedOrder && hasText(selectedOrder.getQuoteReqID());
+        boolean hasQuoteID = hasSelectedOrder && hasText(selectedOrder.getQuoteID());
 
         if (type == OrderType.LIMIT) {
             submitButton.setEnabled(sessionEntered && limitEntered && quantityEntered && symbolEntered);
         } else if (type == OrderType.RFQ) {
             submitButton.setEnabled(sessionEntered && quantityEntered && symbolEntered);
         } else if (type == OrderType.QUOTE) {
-            submitButton.setEnabled(sessionEntered && limitEntered);
+            submitButton.setEnabled(sessionEntered && limitEntered && hasQuoteReqID);
         } else if (type == OrderType.QUOTE_RESPONSE) {
-            submitButton.setEnabled(sessionEntered);
+            submitButton.setEnabled(sessionEntered && hasQuoteID);
         }
     }
 
@@ -254,6 +256,11 @@ public class OrderEntryPanel extends JPanel implements Observer {
 
     public void setSelectedOrder(Order selectedOrder) {
         this.selectedOrder = selectedOrder;
+        activateSubmit();
+    }
+
+    private static boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
     }
 
     private class SubmitListener implements ActionListener {
@@ -273,12 +280,20 @@ public class OrderEntryPanel extends JPanel implements Observer {
                 order.setSymbol(symbolTextField.getText());
                 order.setQuantity(Integer.parseInt(quantityTextField.getText()));
             } else if (type == OrderType.QUOTE) {
+                if (selectedOrder == null || !hasText(selectedOrder.getQuoteReqID())) {
+                    setMessage("Select an RFQ request row before sending a Quote.");
+                    return;
+                }
                 order.setSide((OrderSide) sideComboBox.getSelectedItem());
                 order.setSymbol(selectedOrder.getSymbol());
                 order.setQuoteReqID(selectedOrder.getQuoteReqID());
                 order.setLimit(limitPriceTextField.getText());
                 order.setQuantity(selectedOrder.getQuantity());
             } else if (type == OrderType.QUOTE_RESPONSE) {
+                if (selectedOrder == null || !hasText(selectedOrder.getQuoteID())) {
+                    setMessage("Select a Quote row before sending a Quote Response.");
+                    return;
+                }
                 order.setQuoteRespType(1);
                 order.setQuoteID(selectedOrder.getQuoteID());
                 order.setSymbol(selectedOrder.getSymbol());
