@@ -43,6 +43,7 @@ import quickfix.field.BusinessRejectReason;
 import quickfix.field.ClOrdID;
 import quickfix.field.CumQty;
 import quickfix.field.CxlType;
+import quickfix.field.CashOrderQty;
 import quickfix.field.DeliverToCompID;
 import quickfix.field.ExecID;
 import quickfix.field.HandlInst;
@@ -52,6 +53,7 @@ import quickfix.field.LeavesQty;
 import quickfix.field.LocateReqd;
 import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
+import quickfix.field.NoRelatedSym;
 import quickfix.field.OrdStatus;
 import quickfix.field.OrdType;
 import quickfix.field.OrderQty;
@@ -177,7 +179,8 @@ public class BanzaiApplication implements Application {
                         // For OpenFIX certification testing
                         sendBusinessReject(message, BusinessRejectReason.CONDITIONALLY_REQUIRED_FIELD_MISSING, "Conditionally required field missing");
                     }
-                    else if (message.getHeader().isSetField(DeliverToCompID.FIELD)) {
+                    else if (message.getHeader().isSetField(DeliverToCompID.FIELD)
+                            && !message.getHeader().getField(msgType).valueEquals(MsgType.QUOTE_REQUEST)) {
                         // This is here to support OpenFIX certification
                         sendSessionReject(message, SessionRejectReason.COMPID_PROBLEM);
                     } else if (message.getHeader().getField(msgType).valueEquals(MsgType.EXECUTION_REPORT)) {
@@ -193,22 +196,29 @@ public class BanzaiApplication implements Application {
                     } else if (message.getHeader().getField(msgType).valueEquals(MsgType.QUOTE_REQUEST)) {
                         System.out.println(message.toString());
                         Order quoteRequest = new Order();
-                        Group noRelatedSymGroup = new quickfix.fix44.QuoteRequest.NoRelatedSym();
-                        Group group = message.getGroup(1, noRelatedSymGroup);
-                        quoteRequest.setSymbol(group.getString(Symbol.FIELD));
-                        quoteRequest.setQuoteReqID(message.getString(QuoteReqID.FIELD));
-                        quoteRequest.setQuantity(group.getInt(OrderQty.FIELD));
+                        Group group = getFirstNoRelatedSymGroup(message);
+                        String quoteReqID = message.getString(QuoteReqID.FIELD);
+
+                        quoteRequest.setSessionID(sessionID);
+                        quoteRequest.setQuoteReqID(quoteReqID);
+                        quoteRequest.setSymbol(getQuoteRequestStringField(message, group, Symbol.FIELD));
+                        quoteRequest.setQuantity(getQuoteRequestQuantity(message, group));
                         quoteRequest.setType(OrderType.RFQ);
                         quoteRequest.setOpen(quoteRequest.getQuantity());
-                        if (group.isSetField(Side.FIELD)) {
-                            String side = group.getString(Side.FIELD);
-                            if (side.equals("1")) {
+
+                        String side = getQuoteRequestStringField(message, group, Side.FIELD);
+                        if (side != null) {
+                            if (side.equals(String.valueOf(Side.BUY))) {
                                 quoteRequest.setSide(OrderSide.BUY);
-                            } else if (side.equals("2")) {
+                            } else if (side.equals(String.valueOf(Side.SELL))) {
                                 quoteRequest.setSide(OrderSide.SELL);
+                            } else {
+                                quoteRequest.setSide(OrderSide.UNDISCLOSED);
                             }
                         }
+
                         orderTableModel.addOrder(quoteRequest);
+                        orderTableModel.addID(quoteRequest, quoteReqID);
                     } else if (message.getHeader().getField(msgType).valueEquals(MsgType.QUOTE)) {
 
                         if (!message.isSetField(QuoteReqID.FIELD)) {
@@ -537,10 +547,14 @@ public class BanzaiApplication implements Application {
 
             if (order.getSide() == OrderSide.BUY) {
                 quote.set(new BidPx(order.getLimit()));
-                quote.set(new BidSize(order.getQuantity()));  
+                if (order.getQuantity() > 0) {
+                    quote.set(new BidSize(order.getQuantity()));
+                }
             } else if (order.getSide() == OrderSide.SELL) {
                 quote.set(new OfferPx(order.getLimit()));
-                quote.set(new OfferSize(order.getQuantity()));  
+                if (order.getQuantity() > 0) {
+                    quote.set(new OfferSize(order.getQuantity()));
+                }
             }
 
             quote.set(new QuoteReqID(quoteReqID));
@@ -597,6 +611,49 @@ public class BanzaiApplication implements Application {
             message.setField(tifToFIXTif(order.getTIF()));
         }
         return message;
+    }
+
+    private Group getFirstNoRelatedSymGroup(quickfix.Message message) {
+        if (!message.isSetField(NoRelatedSym.FIELD)) {
+            return null;
+        }
+
+        Group noRelatedSymGroup = new quickfix.fix44.QuoteRequest.NoRelatedSym();
+        try {
+            return message.getGroup(1, noRelatedSymGroup);
+        } catch (FieldNotFound e) {
+            return null;
+        }
+    }
+
+    private String getQuoteRequestStringField(quickfix.Message message, Group group, int field) {
+        try {
+            if (group != null && group.isSetField(field)) {
+                return group.getString(field);
+            }
+            if (message.isSetField(field)) {
+                return message.getString(field);
+            }
+        } catch (FieldNotFound e) {
+            return null;
+        }
+        return null;
+    }
+
+    private int getQuoteRequestQuantity(quickfix.Message message, Group group) {
+        String quantity = getQuoteRequestStringField(message, group, OrderQty.FIELD);
+        if (quantity == null) {
+            quantity = getQuoteRequestStringField(message, group, CashOrderQty.FIELD);
+        }
+        if (quantity == null) {
+            return 0;
+        }
+
+        try {
+            return new BigDecimal(quantity).intValue();
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     public void cancel(Order order) {
